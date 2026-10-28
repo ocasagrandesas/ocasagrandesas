@@ -1,0 +1,87 @@
+.admin-auth {
+  display: grid;
+  place-items: center;
+  padding-block: var(--space-section);
+}
+
+.admin-auth .card {
+  width: min(100%, 26rem);
+}
+
+.admin-auth h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xl);
+}
+
+.admin-auth .button {
+  width: 100%;
+}
+
+.admin-header__session {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.admin-page {
+  padding-block: var(--space-8) var(--space-section);
+}
+
+.admin-page h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xl);
+}
+
+.admin-page__lead {
+  color: var(--color-text-muted);
+  max-width: 44rem;
+}
+
+.module-list {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.module-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.module-item h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-1);
+}
+
+.module-item p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.module-item__key {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.module-item__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 600;
+}
+
+.status-message {
+  min-height: 1.6em;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,24 @@
+# Portable SDK downloaded for local development
+.dotnet/
+
+# Build output
+bin/
+obj/
+publish/
+dist/
+TestResults/
+
+# SQLite database is generated from the migrations at startup
+*.db
+*.db-shm
+*.db-wal
+
+# Local environment files
+.env
+.env.*
+.vercel/
+
+# IDE
+.vs/
+.vscode/
+*.user

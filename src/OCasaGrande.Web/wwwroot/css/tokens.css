@@ -1,0 +1,37 @@
+:root {
+  --color-primary: #1f4d3a;
+  --color-primary-strong: #163829;
+  --color-primary-soft: #e7f0eb;
+  --color-accent: #b85a2e;
+  --color-text: #1c2421;
+  --color-text-muted: #55615c;
+  --color-surface: #ffffff;
+  --color-background: #f6f5f1;
+  --color-border: #dcdfd9;
+  --color-danger: #a8322a;
+  --color-danger-soft: #fbeceb;
+  --color-focus: #2f7dd1;
+
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --font-size-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+  --font-size-hero: clamp(2rem, 1.4rem + 2.6vw, 3.5rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-section: clamp(3rem, 2rem + 4vw, 6rem);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgb(28 36 33 / 0.06), 0 8px 24px rgb(28 36 33 / 0.06);
+
+  --container-width: 72rem;
+  --navbar-height: 4.25rem;
+}

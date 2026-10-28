@@ -1,0 +1,76 @@
+.hero {
+  padding-block: var(--space-section);
+  background: linear-gradient(160deg, var(--color-primary-soft), var(--color-background) 60%);
+}
+
+.hero__content {
+  max-width: 46rem;
+}
+
+.hero h1 {
+  font-size: var(--font-size-hero);
+  color: var(--color-primary-strong);
+}
+
+.hero__lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.about {
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  align-items: start;
+}
+
+.about__points {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about__points li {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.about__points .icon {
+  margin-top: 0.2em;
+  color: var(--color-primary);
+}
+
+.idea-card h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-2);
+}
+
+.idea-card p {
+  color: var(--color-text-muted);
+}
+
+/* Coming-soon page */
+.coming-soon {
+  display: grid;
+  place-items: center;
+  padding-block: var(--space-section);
+  text-align: center;
+}
+
+.coming-soon .card {
+  max-width: 34rem;
+}
+
+.coming-soon .card__icon {
+  margin-inline: auto;
+}

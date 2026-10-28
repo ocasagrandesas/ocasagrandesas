@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>O Casa Grande — Monitore o seu negócio</title>
+  <meta name="description" content="O Casa Grande é uma plataforma SaaS para monitorar o seu negócio, com novos módulos a caminho.">
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/landing.css">
+  <script type="module" src="/js/navbar.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="navbar">
+    <nav class="container navbar__inner" aria-label="Principal">
+      <a class="brand" href="/">
+        <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#logo"></use></svg>
+        O Casa Grande
+      </a>
+
+      <button class="navbar__toggle" type="button" aria-expanded="false" aria-controls="navbar-menu" aria-label="Abrir menu">
+        <svg class="icon icon--menu" aria-hidden="true"><use href="/assets/icons/sprite.svg#menu"></use></svg>
+        <svg class="icon icon--close" aria-hidden="true"><use href="/assets/icons/sprite.svg#close"></use></svg>
+      </button>
+
+      <div class="navbar__menu" id="navbar-menu">
+        <ul class="navbar__links">
+          <li><a href="#inicio"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#home"></use></svg>Início</a></li>
+          <li><a href="#sobre"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#info"></use></svg>Sobre</a></li>
+          <li><a href="#ideias"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#idea"></use></svg>Ideias</a></li>
+          <li><a href="#contato"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#mail"></use></svg>Contato</a></li>
+        </ul>
+        <a class="button button--primary" href="/entrar">
+          Acessar plataforma
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#arrow-right"></use></svg>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <div class="container hero__content">
+        <span class="section__eyebrow">Plataforma de gestão</span>
+        <h1 id="hero-title">Acompanhe o seu negócio em um só lugar.</h1>
+        <p class="hero__lead">
+          O Casa Grande é uma plataforma SaaS para monitorar o seu negócio. Começamos pelo essencial e vamos crescer
+          em módulos, de acordo com o que cada negócio precisa.
+        </p>
+        <div class="hero__actions">
+          <a class="button button--primary" href="/entrar">
+            Acessar plataforma
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#arrow-right"></use></svg>
+          </a>
+          <a class="button button--outline" href="#sobre">Saiba mais</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="sobre" aria-labelledby="sobre-title">
+      <div class="container about">
+        <div>
+          <span class="section__eyebrow">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#info"></use></svg>
+            Sobre
+          </span>
+          <h2 id="sobre-title">Para que serve O Casa Grande</h2>
+          <p>
+            Quem cuida de um negócio precisa enxergar, com clareza, o que está acontecendo. A plataforma reúne
+            essas informações em um painel simples, para que você acompanhe o dia a dia e tome decisões com mais segurança.
+          </p>
+          <p>
+            Hoje o foco é o monitoramento do negócio. As próximas funções chegam como módulos, que podem ser ativados
+            conforme a necessidade de cada cliente.
+          </p>
+        </div>
+        <ul class="about__points">
+          <li>
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#chart"></use></svg>
+            <span><strong>Visão clara:</strong> os principais números do negócio reunidos em um só lugar.</span>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#layers"></use></svg>
+            <span><strong>Cresce com você:</strong> novas funções entram como módulos, sem trocar de sistema.</span>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#shield"></use></svg>
+            <span><strong>Segurança desde o início:</strong> proteção dos dados como base de tudo.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ideias" aria-labelledby="ideias-title">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__eyebrow">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#idea"></use></svg>
+            Ideias
+          </span>
+          <h2 id="ideias-title">O que estamos construindo</h2>
+          <p>A plataforma começa pelo monitoramento e cresce em etapas.</p>
+        </div>
+        <ul class="grid" role="list">
+          <li class="card idea-card">
+            <span class="card__icon"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#chart"></use></svg></span>
+            <h3>Monitoramento do negócio</h3>
+            <p>Acompanhamento dos principais indicadores em um painel único.</p>
+            <span class="badge">Primeiro módulo</span>
+          </li>
+          <li class="card idea-card">
+            <span class="card__icon"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#layers"></use></svg></span>
+            <h3>Módulos sob demanda</h3>
+            <p>Novas funções que podem ser ativadas sem mudar a forma de trabalhar.</p>
+            <span class="badge badge--muted">Em planejamento</span>
+          </li>
+          <li class="card idea-card">
+            <span class="card__icon"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#tag"></use></svg></span>
+            <h3>Planos sob medida</h3>
+            <p>Cada plano libera os módulos que fazem sentido para o seu negócio.</p>
+            <span class="badge badge--muted">Em planejamento</span>
+          </li>
+          <li class="card idea-card">
+            <span class="card__icon"><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#shield"></use></svg></span>
+            <h3>Dados protegidos</h3>
+            <p>Acesso controlado e proteção contra ataques comuns desde a primeira versão.</p>
+            <span class="badge">Desde o início</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="contato">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <a class="brand" href="/">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#logo"></use></svg>
+            O Casa Grande
+          </a>
+          <p>Plataforma para monitorar o seu negócio.</p>
+        </div>
+        <nav aria-labelledby="footer-nav-title">
+          <h2 id="footer-nav-title">Navegação</h2>
+          <ul class="footer__list">
+            <li><a href="#inicio">Início</a></li>
+            <li><a href="#sobre">Sobre</a></li>
+            <li><a href="#ideias">Ideias</a></li>
+            <li><a href="/entrar">Acessar plataforma</a></li>
+          </ul>
+        </nav>
+        <div>
+          <h2>Contato</h2>
+          <!-- Placeholders: replace "a definir" with the real contacts and turn each item into a mailto:/tel:/https link. -->
+          <ul class="footer__list">
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#mail"></use></svg><span>E-mail: a definir</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#chat"></use></svg><span>WhatsApp: a definir</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#phone"></use></svg><span>Telefone: a definir</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#instagram"></use></svg><span>Instagram: a definir</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#map-pin"></use></svg><span>Endereço: a definir</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2026 O Casa Grande. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY src/OCasaGrande.Web/OCasaGrande.Web.csproj src/OCasaGrande.Web/
+RUN dotnet restore src/OCasaGrande.Web/OCasaGrande.Web.csproj
+COPY src/ src/
+RUN dotnet publish src/OCasaGrande.Web/OCasaGrande.Web.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+USER $APP_UID
+# Vercel containers have a read-only filesystem except /tmp, and the non-root user cannot bind port 80.
+# The PORT environment variable in the Vercel project settings must match ASPNETCORE_HTTP_PORTS.
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    ASPNETCORE_HTTP_PORTS=8080 \
+    PORT=8080 \
+    ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+    Database__Path=/tmp/ocasagrande.db \
+    DataProtection__KeysPath=/tmp/dataprotection-keys \
+    DOTNET_EnableDiagnostics=0
+ENTRYPOINT ["dotnet", "OCasaGrande.Web.dll"]

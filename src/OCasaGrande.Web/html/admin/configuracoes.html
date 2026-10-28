@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Configurações — O Casa Grande</title>
+  <link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script type="module" src="/js/admin-settings.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="navbar">
+    <div class="container navbar__inner">
+      <a class="brand" href="/admin">
+        <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#logo"></use></svg>
+        O Casa Grande
+      </a>
+      <div class="admin-header__session">
+        <span id="session-email"></span>
+        <button id="logout-button" class="button button--outline button--small" type="button">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#logout"></use></svg>
+          Sair
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container admin-page">
+    <h1>
+      <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#settings"></use></svg>
+      Configurações da plataforma
+    </h1>
+    <p class="admin-page__lead">
+      Ative ou desative os módulos disponíveis na plataforma. Cada módulo tem um identificador fixo, que os planos
+      vão usar para liberar o acesso dos clientes.
+    </p>
+
+    <section aria-labelledby="modules-title">
+      <h2 id="modules-title" class="visually-hidden">Módulos</h2>
+      <p id="settings-status" class="status-message" role="status" aria-live="polite"></p>
+      <ul id="module-list" class="module-list"></ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,16 @@
+.dotnet/
+.git/
+.vs/
+.vscode/
+.vercel/
+**/bin/
+**/obj/
+publish/
+dist/
+TestResults/
+tests/
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
