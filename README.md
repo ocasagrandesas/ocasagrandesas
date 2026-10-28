@@ -6,7 +6,7 @@ Plataforma SaaS para monitorar o seu negócio. Esta é a base do projeto: a pág
 
 - **Página inicial** (`/`): barra de navegação com ícones (Início, Sobre, Ideias, Contato), botão **Acessar plataforma**, seções "Sobre" e "Ideias" e rodapé com os contatos.
 - **Acessar plataforma** (`/entrar`): página "em breve", até o login dos clientes ser construído.
-- **Administração** (`/admin/entrar` e `/admin`): acesso restrito ao administrador, com a lista de módulos e um botão para ativar ou desativar cada um.
+- **Administração** (`/admin/entrar` e `/admin`): acesso restrito ao administrador, com a lista de módulos, um botão para ativar ou desativar cada um e a atividade recente (logins e alterações).
 
 Os contatos do rodapé estão como "a definir" em `src/OCasaGrande.Web/html/index.html`.
 
@@ -15,13 +15,24 @@ Os contatos do rodapé estão como "a definir" em `src/OCasaGrande.Web/html/inde
 | Camada | Tecnologia |
 |---|---|
 | Back-end e API | C# com .NET 10 (LTS) e ASP.NET Core Minimal APIs |
-| Acesso a dados | Entity Framework Core 10 com migrations |
-| Banco de dados | SQLite (em arquivo) |
+| Acesso a dados | Entity Framework Core 10 com migrations, provider Npgsql |
+| Banco de dados | **PostgreSQL, e só PostgreSQL**: Neon no Vercel e PostgreSQL 17 local |
 | Front-end | HTML, CSS e JavaScript (módulos ES), sem framework nem etapa de build |
 | Testes | xUnit e `Microsoft.AspNetCore.Mvc.Testing` |
 | Publicação | Vercel, como contêiner (`Dockerfile.vercel`) |
 
-A versão do SDK está fixada em `global.json`.
+A versão do SDK está fixada em `global.json`. As regras permanentes do projeto (PostgreSQL como único banco e segurança como prioridade) estão em `.cursor/rules/postgres-e-seguranca.mdc`.
+
+### O que fica no PostgreSQL
+
+| Tabela | Conteúdo | Usada por |
+|---|---|---|
+| `Modules` | Módulos da plataforma e se estão ativos | `Api/Modules/ModuleEndpoints.cs` |
+| `SecurityEvents` | Auditoria: logins aceitos e recusados, saídas e alterações de módulos, com data, IP e usuário. Nunca guarda senha, hash, token nem o e-mail digitado num login recusado. | `Security/SecurityAudit.cs`, `Api/SecurityEvents/` |
+| `RateLimitWindows` | Contador de tentativas de login por IP, compartilhado por todas as instâncias | `Security/SharedRateLimiter.cs` |
+| `DataProtectionKeys` | Chaves que criptografam os cookies de sessão e CSRF, compartilhadas por todas as instâncias | ASP.NET Core Data Protection (`Program.cs`) |
+
+O e-mail e o hash da senha do administrador não ficam no banco: são segredos e ficam nas variáveis de ambiente.
 
 ## 3. Estrutura das pastas
 
@@ -30,13 +41,13 @@ Cada tipo de arquivo tem a sua pasta. O design (HTML e CSS) fica separado da ló
 ```
 ├── src/OCasaGrande.Web/
 │   ├── Program.cs        # Só a configuração: registra serviços e liga os módulos abaixo
-│   ├── Api/              # Endpoints da API, uma pasta por recurso (Api/Modules/)
+│   ├── Api/              # Endpoints da API, uma pasta por recurso (Api/Modules/, Api/SecurityEvents/)
 │   ├── Webhooks/         # Webhooks recebidos de serviços externos, separados da API
 │   ├── Auth/             # Login do administrador, sessão e política de acesso
-│   ├── Security/         # Cabeçalhos de segurança, rate limiting, CSRF, comando hash-password
+│   ├── Security/         # Cabeçalhos, rate limiting (memória e PostgreSQL), CSRF, auditoria, hash-password
 │   ├── Site/             # Rotas que entregam as páginas HTML
-│   ├── Domain/           # Entidades (PlatformModule)
-│   ├── Data/             # DbContext, dados iniciais, inicialização e Migrations/
+│   ├── Domain/           # Entidades (PlatformModule, SecurityEvent, RateLimitWindow)
+│   ├── Data/             # DbContext, conexão PostgreSQL, dados iniciais, inicialização e Migrations/
 │   ├── html/             # Páginas HTML (admin/ para as páginas restritas)
 │   └── wwwroot/
 │       ├── css/          # tokens, base, components, layout, landing, admin
@@ -58,43 +69,60 @@ Cada tipo de arquivo tem a sua pasta. O design (HTML e CSS) fica separado da ló
 
 ## 4. Como executar
 
-**Pré-requisito:** [SDK do .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0).
+**Pré-requisitos:** [SDK do .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) e [PostgreSQL 17](https://www.postgresql.org/download/windows/) (`winget install PostgreSQL.PostgreSQL.17`).
 
-1. Gere o hash da senha do administrador. A senha precisa ter de 12 a 128 caracteres e não é exibida enquanto você digita:
+1. Crie um usuário e um banco só para o projeto, com uma senha forte. O usuário precisa de `CREATEDB` porque os testes criam e apagam bancos temporários:
+
+   ```sql
+   CREATE ROLE ocasagrande_dev WITH LOGIN CREATEDB PASSWORD '<senha forte>';
+   CREATE DATABASE ocasagrande OWNER ocasagrande_dev;
+   ```
+
+   Guarde a conexão nos user-secrets:
+
+   ```bash
+   dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Database=ocasagrande;Username=ocasagrande_dev;Password=<senha forte>" --project src/OCasaGrande.Web
+   ```
+
+2. Gere o hash da senha do administrador. A senha precisa ter de 12 a 128 caracteres e não é exibida enquanto você digita:
 
    ```bash
    dotnet run --project src/OCasaGrande.Web -- hash-password
    ```
 
-2. Guarde o e-mail e o hash nos *user-secrets*, que ficam fora do repositório:
+3. Guarde o e-mail e o hash nos *user-secrets*, que ficam fora do repositório:
 
    ```bash
    dotnet user-secrets set "Admin:Email" "voce@exemplo.com" --project src/OCasaGrande.Web
    dotnet user-secrets set "Admin:PasswordHash" "<hash gerado>" --project src/OCasaGrande.Web
    ```
 
-3. Rode a aplicação e acesse http://localhost:5180:
+4. Rode a aplicação e acesse http://localhost:5180:
 
    ```bash
    dotnet run --project src/OCasaGrande.Web
    ```
 
-Na primeira execução, o arquivo `data/ocasagrande.db` é criado com as migrations. Sem `Admin:Email` e `Admin:PasswordHash`, a área de administração recusa qualquer login.
+Ao iniciar, a aplicação aplica as migrations pendentes no PostgreSQL. O EF Core trava o banco durante a migração, então várias instâncias iniciando juntas não se atrapalham. Sem conexão PostgreSQL configurada, a aplicação não inicia. Sem `Admin:Email` e `Admin:PasswordHash`, a área de administração recusa qualquer login.
 
-Para rodar os testes:
+Para rodar os testes (cada classe de teste cria um banco PostgreSQL temporário e o apaga no fim):
 
 ```bash
 dotnet test
 ```
 
+**Conexão com o banco:** a aplicação usa `ConnectionStrings:Postgres` se estiver definida. Senão, usa `DATABASE_URL` (com pool de conexões) para as consultas e `DATABASE_URL_UNPOOLED` (conexão direta) para as migrations, que são as variáveis criadas pela integração Neon no Vercel. Conexões com servidores remotos sempre usam TLS com o certificado validado (`SslMode=VerifyFull`).
+
 ## 5. Segurança
 
 | Proteção | Como é feita |
 |---|---|
-| SQL injection | Todas as consultas passam pelo LINQ do EF Core, que é parametrizado. A rota de módulos só aceita identificadores `^[a-z0-9-]{1,50}$`. |
+| SQL injection | Todas as consultas passam pelo LINQ do EF Core, que é parametrizado. O único SQL escrito à mão (o contador de login) usa SQL interpolado do EF Core, em que cada valor vira parâmetro. A rota de módulos só aceita identificadores `^[a-z0-9-]{1,50}$`. |
 | XSS | Os dados vindos da API entram na página só por `textContent` e APIs do DOM, nunca por `innerHTML`. A CSP só permite scripts, estilos e fontes do próprio site. |
 | CSRF | Toda requisição que altera dados (`POST`/`PUT`) exige o token antiforgery no cabeçalho `X-CSRF-TOKEN`. Os cookies usam `SameSite=Strict`. |
-| Força bruta e sobrecarga | Rate limiting por IP: 300 req/min no geral, 60 req/min na API e **5 tentativas de login por minuto**. Excedido o limite, a resposta é `429`. |
+| Força bruta e sobrecarga | Rate limiting por IP em duas camadas: na memória de cada instância (300 req/min no geral, 60 req/min na API, 5 logins/min), que barra excessos antes de chegarem ao banco, e no PostgreSQL para o login (**5 tentativas por minuto somando todas as instâncias**). Excedido o limite, a resposta é `429`. |
+| Auditoria | Logins aceitos e recusados, saídas e alterações de módulos ficam em `SecurityEvents` e aparecem na administração. |
+| Banco | TLS com certificado validado em conexões remotas. Erros do banco não chegam ao usuário. |
 | Senha | Guardada só como hash PBKDF2, pelo `PasswordHasher` do ASP.NET Core Identity. O hash é verificado mesmo quando o e-mail não confere, para que o tempo de resposta não revele o e-mail do administrador. |
 | Sessão | Cookie `HttpOnly`, `Secure` (em produção) e `SameSite=Strict`, com 30 minutos de validade renovada a cada uso. Trocar o e-mail ou a senha na configuração encerra todas as sessões abertas. |
 | Cabeçalhos | CSP, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` e HSTS em produção. `/api` e `/admin` respondem com `Cache-Control: no-store`. |
@@ -113,7 +141,8 @@ Nenhum sistema é totalmente imune a ataques. Estas camadas seguem as práticas 
 | `GET /api/auth/session` | Administrador | E-mail do administrador conectado |
 | `GET /api/admin/modules` | Administrador | Lista os módulos |
 | `PUT /api/admin/modules/{key}` | Administrador, com CSRF | `{ isEnabled }`. Ativa ou desativa o módulo. |
-| `GET /health` | Público | Verificação de saúde |
+| `GET /api/admin/security-events` | Administrador | Os 50 eventos de segurança mais recentes |
+| `GET /health` | Público | Verificação de saúde, incluindo a conexão com o PostgreSQL |
 
 ## 7. Módulos e planos
 
@@ -131,15 +160,16 @@ Os planos vão referenciar os módulos pelo `Key`, numa tabela própria (plano �
 O Vercel não tem runtime .NET próprio, mas executa a aplicação como contêiner, usando o `Dockerfile.vercel` e o `vercel.json` da raiz.
 
 1. Importe o repositório no Vercel, mantendo a raiz como diretório do projeto e o *Framework Preset* como "Other".
-2. Em *Settings → Environment Variables*, crie:
+2. Em *Storage → Create Database → Neon*, crie o banco e conecte-o ao projeto. A integração cria `DATABASE_URL` e `DATABASE_URL_UNPOOLED`.
+3. Em *Settings → Environment Variables*, crie:
    - `PORT` = `8080` (o contêiner roda sem root e escuta na 8080);
    - `Admin__Email` e `Admin__PasswordHash` (o hash gerado com `hash-password`).
-3. Em *Firewall*, crie uma regra de **rate limit** para `/api/auth/login`. O limite da aplicação é contado em cada instância; a regra do Firewall vale para todas as instâncias juntas. A proteção contra DDoS do Vercel já vem ativa.
-4. Faça o deploy.
+4. Em *Firewall*, crie uma regra de **rate limit** para `/api/auth/login`, como camada extra na borda. A proteção contra DDoS do Vercel já vem ativa.
+5. Faça o deploy. As migrations são aplicadas quando o contêiner inicia.
 
 ## 9. Limitações conhecidas
 
-- **Dados no Vercel são temporários.** O disco do contêiner é somente leitura, exceto `/tmp`. Por isso o banco SQLite fica em `/tmp/ocasagrande.db` e volta ao estado inicial a cada nova inicialização, e as alterações feitas nos botões da administração se perdem. Antes do uso real, o próximo passo é trocar o SQLite por um banco gerenciado, como Postgres (Neon, pelo Marketplace do Vercel).
-- **Sessões e várias instâncias.** As chaves que protegem o cookie de sessão também ficam em `/tmp` (`DataProtection__KeysPath`). Uma reinicialização encerra as sessões, e se o Vercel abrir mais de uma instância, uma sessão criada em uma pode não valer na outra. Isso se resolve guardando essas chaves no mesmo banco gerenciado.
-- **Um único administrador**, definido pela configuração. Os logins dos clientes e vários administradores entram junto com o banco gerenciado.
+- **Chaves de sessão sem criptografia extra no banco.** As chaves em `DataProtectionKeys` ficam protegidas pelo acesso ao banco (credenciais secretas e TLS), mas não são criptografadas dentro da tabela. Quem conseguir ler o banco poderia forjar uma sessão. O reforço recomendado é criptografar essas chaves com um certificado guardado fora do banco (`ProtectKeysWithCertificate`).
+- **Migrations com o mesmo usuário da aplicação.** No Neon, a aplicação e as migrations usam o mesmo usuário do banco. O ideal é ter um usuário só com permissão de leitura e escrita para a aplicação e outro para alterar o esquema.
+- **Um único administrador**, definido pela configuração. Os logins dos clientes e vários administradores ainda vão ser construídos.
 - **Contatos do rodapé** estão como "a definir".

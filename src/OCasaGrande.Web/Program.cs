@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using OCasaGrande.Web.Api.Modules;
+using OCasaGrande.Web.Api.SecurityEvents;
 using OCasaGrande.Web.Auth;
 using OCasaGrande.Web.Data;
 using OCasaGrande.Web.Security;
@@ -13,23 +14,23 @@ if (args is [PasswordHashCommand.Name])
 
 var builder = WebApplication.CreateBuilder(args);
 
-var databasePath = DatabaseInitializer.ResolvePath(builder.Configuration, builder.Environment);
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(DatabaseInitializer.ConnectionString(databasePath)));
+var database = DatabaseConnection.Resolve(builder.Configuration);
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(database.Application));
 
-if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
-{
-    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath));
-}
+builder.Services.AddDataProtection()
+    .SetApplicationName("OCasaGrande")
+    .PersistKeysToDbContext<AppDbContext>();
 
 builder.Services.AddProblemDetails();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("postgres");
 builder.Services.AddAppRateLimiting(builder.Configuration);
+builder.Services.AddScoped<SharedRateLimiter>();
+builder.Services.AddScoped<SecurityAudit>();
 builder.Services.AddAdminAuthentication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
-DatabaseInitializer.Migrate(databasePath);
+DatabaseInitializer.Migrate(database);
 
 if (!app.Environment.IsDevelopment())
 {
@@ -47,6 +48,7 @@ app.UseAuthorization();
 app.MapSitePages();
 app.MapAuthApi();
 app.MapModulesApi();
+app.MapSecurityEventsApi();
 app.MapHealthChecks("/health");
 
 app.Run();

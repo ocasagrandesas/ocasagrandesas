@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/admin.css">
   <script type="module" src="/js/admin-settings.js"></script>
+  <script type="module" src="/js/admin-activity.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -46,6 +47,29 @@
       <h2 id="modules-title" class="visually-hidden">Módulos</h2>
       <p id="settings-status" class="status-message" role="status" aria-live="polite"></p>
       <ul id="module-list" class="module-list"></ul>
+    </section>
+
+    <section class="activity" aria-labelledby="activity-title">
+      <h2 id="activity-title">
+        <svg class="icon" aria-hidden="true"><use href="/assets/icons/sprite.svg#shield"></use></svg>
+        Atividade recente
+      </h2>
+      <p class="admin-page__lead">Os últimos acessos e alterações registrados pela plataforma.</p>
+      <p id="activity-status" class="status-message" role="status" aria-live="polite"></p>
+      <div class="card activity__table-wrapper">
+        <table class="activity__table">
+          <thead>
+            <tr>
+              <th scope="col">Data e hora</th>
+              <th scope="col">Evento</th>
+              <th scope="col">Usuário</th>
+              <th scope="col">IP</th>
+              <th scope="col">Detalhe</th>
+            </tr>
+          </thead>
+          <tbody id="activity-list"></tbody>
+        </table>
+      </div>
     </section>
   </main>
 </body>

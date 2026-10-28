@@ -1,0 +1,29 @@
+---
+description: Regras permanentes do O Casa Grande - PostgreSQL como único banco e segurança como prioridade máxima
+alwaysApply: true
+---
+
+# Regras permanentes do O Casa Grande
+
+## 1. PostgreSQL é o único banco de dados
+
+- Tudo o que precisa ser guardado vai para o PostgreSQL, pelo `AppDbContext` (EF Core + Npgsql) e por migrations em `Data/Migrations/`.
+- Nunca usar SQLite, SQL Server, MongoDB, Redis, arquivos locais, `/tmp` ou memória como armazenamento permanente.
+- Estado compartilhado entre instâncias (sessões, chaves, limites de requisição, auditoria) também fica no PostgreSQL.
+- Os testes rodam contra PostgreSQL real, nunca contra outro banco ou provider em memória.
+
+```csharp
+// ❌ Errado: options.UseSqlite(...) / File.WriteAllText("/tmp/dados.json", ...)
+// ✅ Certo:  options.UseNpgsql(database.Application) + nova migration
+```
+
+## 2. Segurança é sempre a prioridade máxima
+
+- SQL injection: só LINQ do EF Core ou SQL interpolado (`SqlQuery($"...")`, que vira parâmetro). Nunca concatenar texto em SQL.
+- XSS: no front-end, dados entram só por `textContent` e APIs do DOM. Nada de `innerHTML`, `<script>` inline ou `style=""`.
+- Rate limiting em todo endpoint novo (`RequireRateLimiting`). Endpoints sensíveis também usam o limite compartilhado no PostgreSQL (`SharedRateLimiter`).
+- Toda requisição que altera dados exige o token CSRF (`ValidateAntiforgeryFilter`) e autorização no servidor.
+- Validar toda entrada (tipo, tamanho, formato) e responder erros sem detalhes internos.
+- Segredos só em variáveis de ambiente ou user-secrets. Nunca no código, no repositório ou nos logs.
+- Ações sensíveis são registradas em `SecurityEvents`, sem senhas, hashes ou tokens.
+- Cada mudança vem com testes dos casos de segurança.

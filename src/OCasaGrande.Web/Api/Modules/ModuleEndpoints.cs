@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using OCasaGrande.Web.Auth;
 using OCasaGrande.Web.Data;
+using OCasaGrande.Web.Domain;
 using OCasaGrande.Web.Security;
 
 namespace OCasaGrande.Web.Api.Modules;
@@ -28,7 +30,12 @@ public static class ModuleEndpoints
             .ToListAsync(cancellationToken));
 
     private static async Task<Results<Ok<ModuleItem>, ValidationProblem, ProblemHttpResult>> UpdateModule(
-        string key, UpdateModuleRequest request, AppDbContext db, CancellationToken cancellationToken)
+        string key,
+        UpdateModuleRequest request,
+        AppDbContext db,
+        SecurityAudit audit,
+        HttpContext context,
+        CancellationToken cancellationToken)
     {
         var errors = request.Validate();
         if (errors.Count > 0)
@@ -44,6 +51,11 @@ public static class ModuleEndpoints
 
         module.IsEnabled = request.IsEnabled!.Value;
         module.UpdatedAt = DateTimeOffset.UtcNow;
+        audit.Add(
+            SecurityEventType.ModuleUpdated,
+            context,
+            context.User.FindFirstValue(ClaimTypes.NameIdentifier),
+            $"{module.Key}: {(module.IsEnabled ? "ativado" : "desativado")}");
         await db.SaveChangesAsync(cancellationToken);
 
         return TypedResults.Ok(new ModuleItem(module.Key, module.Name, module.Description, module.IsEnabled, module.UpdatedAt));
