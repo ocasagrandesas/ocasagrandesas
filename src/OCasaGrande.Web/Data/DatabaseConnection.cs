@@ -3,7 +3,7 @@ using Npgsql;
 namespace OCasaGrande.Web.Data;
 
 // PostgreSQL is the only database. Locally the connection comes from ConnectionStrings:Postgres (user-secrets);
-// on Vercel the Neon integration provides DATABASE_URL (pooled) and DATABASE_URL_UNPOOLED as postgresql:// URLs.
+// on Vercel the Supabase integration provides POSTGRES_URL (transaction pooler) and POSTGRES_URL_NON_POOLING.
 public sealed record DatabaseConnection(string Application, string Migrations)
 {
     public static DatabaseConnection Resolve(IConfiguration configuration)
@@ -14,15 +14,22 @@ public sealed record DatabaseConnection(string Application, string Migrations)
             return new DatabaseConnection(normalized, normalized);
         }
 
-        if (configuration["DATABASE_URL"] is { Length: > 0 } pooledUrl)
+        if (configuration["POSTGRES_URL"] is { Length: > 0 } pooledUrl)
         {
-            var application = FromUrl(pooledUrl);
-            var migrations = configuration["DATABASE_URL_UNPOOLED"] is { Length: > 0 } directUrl ? FromUrl(directUrl) : application;
+            // The transaction pooler hands the server connection to other clients after each transaction,
+            // so the session-reset command Npgsql sends on close would run on someone else's session.
+            var application = new NpgsqlConnectionStringBuilder(FromUrl(pooledUrl)) { NoResetOnClose = true }.ConnectionString;
+
+            // Migrations need a session-level connection; the transaction pooler cannot hold one.
+            var migrations = configuration["POSTGRES_URL_NON_POOLING"] is { Length: > 0 } directUrl
+                ? FromUrl(directUrl)
+                : throw new InvalidOperationException("Defina POSTGRES_URL_NON_POOLING para as migrations.");
+
             return new DatabaseConnection(application, migrations);
         }
 
         throw new InvalidOperationException(
-            "Nenhuma conexão PostgreSQL configurada. Defina ConnectionStrings:Postgres ou DATABASE_URL.");
+            "Nenhuma conexão PostgreSQL configurada. Defina ConnectionStrings:Postgres ou POSTGRES_URL.");
     }
 
     // Npgsql only understands keyword=value connection strings, not postgresql:// URLs.
@@ -47,6 +54,7 @@ public sealed record DatabaseConnection(string Application, string Migrations)
     }
 
     // Remote servers must use TLS with full certificate and host-name validation; only a local server may skip it.
+    // Supabase certificates are signed by Supabase's own CA, which PGSSLROOTCERT points to in the container.
     private static string Secure(NpgsqlConnectionStringBuilder builder)
     {
         if (!IsLocalHost(builder.Host))

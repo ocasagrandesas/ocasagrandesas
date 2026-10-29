@@ -1,11 +1,18 @@
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using OCasaGrande.Web.Domain;
 
 namespace OCasaGrande.Web.Data;
 
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDataProtectionKeyContext
 {
+    // Supabase publishes every table in "public" through its REST Data API, so nothing may live there.
+    public const string Schema = "ocasagrande";
+
+    public static void Configure(DbContextOptionsBuilder options, string connectionString) =>
+        options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName, Schema));
+
     public DbSet<PlatformModule> Modules => Set<PlatformModule>();
 
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
@@ -17,6 +24,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema(Schema);
+
         modelBuilder.Entity<PlatformModule>(module =>
         {
             module.ToTable("Modules");

@@ -12,8 +12,12 @@ namespace OCasaGrande.Web.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "ocasagrande");
+
             migrationBuilder.CreateTable(
                 name: "DataProtectionKeys",
+                schema: "ocasagrande",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -28,6 +32,7 @@ namespace OCasaGrande.Web.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Modules",
+                schema: "ocasagrande",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -45,6 +50,7 @@ namespace OCasaGrande.Web.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RateLimitWindows",
+                schema: "ocasagrande",
                 columns: table => new
                 {
                     Key = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -58,6 +64,7 @@ namespace OCasaGrande.Web.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "SecurityEvents",
+                schema: "ocasagrande",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -74,23 +81,27 @@ namespace OCasaGrande.Web.Data.Migrations
                 });
 
             migrationBuilder.InsertData(
+                schema: "ocasagrande",
                 table: "Modules",
                 columns: new[] { "Id", "Description", "IsEnabled", "Key", "Name", "UpdatedAt" },
                 values: new object[] { 1, "Acompanhamento dos principais indicadores do negócio em um só painel.", true, "monitoramento", "Monitoramento do negócio", new DateTimeOffset(new DateTime(2026, 10, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Modules_Key",
+                schema: "ocasagrande",
                 table: "Modules",
                 column: "Key",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RateLimitWindows_WindowStart",
+                schema: "ocasagrande",
                 table: "RateLimitWindows",
                 column: "WindowStart");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SecurityEvents_OccurredAt",
+                schema: "ocasagrande",
                 table: "SecurityEvents",
                 column: "OccurredAt");
         }
@@ -99,16 +110,20 @@ namespace OCasaGrande.Web.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DataProtectionKeys");
+                name: "DataProtectionKeys",
+                schema: "ocasagrande");
 
             migrationBuilder.DropTable(
-                name: "Modules");
+                name: "Modules",
+                schema: "ocasagrande");
 
             migrationBuilder.DropTable(
-                name: "RateLimitWindows");
+                name: "RateLimitWindows",
+                schema: "ocasagrande");
 
             migrationBuilder.DropTable(
-                name: "SecurityEvents");
+                name: "SecurityEvents",
+                schema: "ocasagrande");
         }
     }
 }

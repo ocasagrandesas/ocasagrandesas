@@ -17,6 +17,7 @@ namespace OCasaGrande.Web.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("ocasagrande")
                 .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -38,7 +39,7 @@ namespace OCasaGrande.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys");
+                    b.ToTable("DataProtectionKeys", "ocasagrande");
                 });
 
             modelBuilder.Entity("OCasaGrande.Web.Domain.PlatformModule", b =>
@@ -75,7 +76,7 @@ namespace OCasaGrande.Web.Data.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("Modules", (string)null);
+                    b.ToTable("Modules", "ocasagrande");
 
                     b.HasData(
                         new
@@ -105,7 +106,7 @@ namespace OCasaGrande.Web.Data.Migrations
 
                     b.HasIndex("WindowStart");
 
-                    b.ToTable("RateLimitWindows", (string)null);
+                    b.ToTable("RateLimitWindows", "ocasagrande");
                 });
 
             modelBuilder.Entity("OCasaGrande.Web.Domain.SecurityEvent", b =>
@@ -140,7 +141,7 @@ namespace OCasaGrande.Web.Data.Migrations
 
                     b.HasIndex("OccurredAt");
 
-                    b.ToTable("SecurityEvents", (string)null);
+                    b.ToTable("SecurityEvents", "ocasagrande");
                 });
 #pragma warning restore 612, 618
         }

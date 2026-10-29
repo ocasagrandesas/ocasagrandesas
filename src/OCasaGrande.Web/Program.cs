@@ -15,7 +15,7 @@ if (args is [PasswordHashCommand.Name])
 var builder = WebApplication.CreateBuilder(args);
 
 var database = DatabaseConnection.Resolve(builder.Configuration);
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(database.Application));
+builder.Services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, database.Application));
 
 builder.Services.AddDataProtection()
     .SetApplicationName("OCasaGrande")

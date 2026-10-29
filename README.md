@@ -16,7 +16,7 @@ Os contatos do rodapé estão como "a definir" em `src/OCasaGrande.Web/html/inde
 |---|---|
 | Back-end e API | C# com .NET 10 (LTS) e ASP.NET Core Minimal APIs |
 | Acesso a dados | Entity Framework Core 10 com migrations, provider Npgsql |
-| Banco de dados | **PostgreSQL, e só PostgreSQL**: Neon no Vercel e PostgreSQL 17 local |
+| Banco de dados | **PostgreSQL, e só PostgreSQL**: Supabase no Vercel e PostgreSQL 17 local |
 | Front-end | HTML, CSS e JavaScript (módulos ES), sem framework nem etapa de build |
 | Testes | xUnit e `Microsoft.AspNetCore.Mvc.Testing` |
 | Publicação | Vercel, como contêiner (`Dockerfile.vercel`) |
@@ -24,6 +24,8 @@ Os contatos do rodapé estão como "a definir" em `src/OCasaGrande.Web/html/inde
 A versão do SDK está fixada em `global.json`. As regras permanentes do projeto (PostgreSQL como único banco e segurança como prioridade) estão em `.cursor/rules/postgres-e-seguranca.mdc`.
 
 ### O que fica no PostgreSQL
+
+Todas as tabelas ficam no schema `ocasagrande`. Nada fica em `public`, porque o Supabase publica as tabelas de `public` na sua API REST (Data API).
 
 | Tabela | Conteúdo | Usada por |
 |---|---|---|
@@ -48,6 +50,7 @@ Cada tipo de arquivo tem a sua pasta. O design (HTML e CSS) fica separado da ló
 │   ├── Site/             # Rotas que entregam as páginas HTML
 │   ├── Domain/           # Entidades (PlatformModule, SecurityEvent, RateLimitWindow)
 │   ├── Data/             # DbContext, conexão PostgreSQL, dados iniciais, inicialização e Migrations/
+│   ├── certs/            # Certificado CA público do Supabase, para validar o TLS do banco
 │   ├── html/             # Páginas HTML (admin/ para as páginas restritas)
 │   └── wwwroot/
 │       ├── css/          # tokens, base, components, layout, landing, admin
@@ -111,7 +114,7 @@ Para rodar os testes (cada classe de teste cria um banco PostgreSQL temporário 
 dotnet test
 ```
 
-**Conexão com o banco:** a aplicação usa `ConnectionStrings:Postgres` se estiver definida. Senão, usa `DATABASE_URL` (com pool de conexões) para as consultas e `DATABASE_URL_UNPOOLED` (conexão direta) para as migrations, que são as variáveis criadas pela integração Neon no Vercel. Conexões com servidores remotos sempre usam TLS com o certificado validado (`SslMode=VerifyFull`).
+**Conexão com o banco:** a aplicação usa `ConnectionStrings:Postgres` se estiver definida. Senão, usa `POSTGRES_URL` (pooler do Supabase em modo de transação, porta 6543) para as consultas e `POSTGRES_URL_NON_POOLING` (conexão de sessão) para as migrations, que são as variáveis criadas pela integração Supabase no Vercel. Conexões com servidores remotos sempre usam TLS com o certificado validado (`SslMode=VerifyFull`). O certificado do Supabase é assinado pela autoridade do próprio Supabase, cujo certificado público fica em `src/OCasaGrande.Web/certs/supabase-ca.crt` e é indicado ao Npgsql pela variável `PGSSLROOTCERT` no contêiner.
 
 ## 5. Segurança
 
@@ -160,7 +163,9 @@ Os planos vão referenciar os módulos pelo `Key`, numa tabela própria (plano �
 O Vercel não tem runtime .NET próprio, mas executa a aplicação como contêiner, usando o `Dockerfile.vercel` e o `vercel.json` da raiz.
 
 1. Importe o repositório no Vercel, mantendo a raiz como diretório do projeto e o *Framework Preset* como "Other".
-2. Em *Storage → Create Database → Neon*, crie o banco e conecte-o ao projeto. A integração cria `DATABASE_URL` e `DATABASE_URL_UNPOOLED`.
+2. Em *Storage → Create Database → Supabase*, crie o banco na região **East US (N. Virginia)**, a mesma da aplicação, e conecte-o ao projeto. A integração cria `POSTGRES_URL`, `POSTGRES_URL_NON_POOLING` e outras variáveis do Supabase que a aplicação não usa.
+   - No painel do Supabase, desative a **Data API** (*Project Settings → Data API*). A aplicação não usa a API REST do Supabase.
+   - Em *Database Settings → SSL Configuration*, baixe o certificado CA e salve-o em `src/OCasaGrande.Web/certs/supabase-ca.crt`. É um certificado público, não um segredo.
 3. Em *Settings → Environment Variables*, crie:
    - `PORT` = `8080` (o contêiner roda sem root e escuta na 8080);
    - `Admin__Email` e `Admin__PasswordHash` (o hash gerado com `hash-password`).
@@ -170,6 +175,7 @@ O Vercel não tem runtime .NET próprio, mas executa a aplicação como contêin
 ## 9. Limitações conhecidas
 
 - **Chaves de sessão sem criptografia extra no banco.** As chaves em `DataProtectionKeys` ficam protegidas pelo acesso ao banco (credenciais secretas e TLS), mas não são criptografadas dentro da tabela. Quem conseguir ler o banco poderia forjar uma sessão. O reforço recomendado é criptografar essas chaves com um certificado guardado fora do banco (`ProtectKeysWithCertificate`).
-- **Migrations com o mesmo usuário da aplicação.** No Neon, a aplicação e as migrations usam o mesmo usuário do banco. O ideal é ter um usuário só com permissão de leitura e escrita para a aplicação e outro para alterar o esquema.
+- **Banco pausado por inatividade.** No plano gratuito, o Supabase pausa o projeto após uma semana com pouco uso, e a aplicação não inicia até ele ser reativado no painel. Planos pagos não pausam.
+- **Migrations com o mesmo usuário da aplicação.** No Supabase, a aplicação e as migrations usam o mesmo usuário do banco. O ideal é ter um usuário só com permissão de leitura e escrita para a aplicação e outro para alterar o esquema.
 - **Um único administrador**, definido pela configuração. Os logins dos clientes e vários administradores ainda vão ser construídos.
 - **Contatos do rodapé** estão como "a definir".

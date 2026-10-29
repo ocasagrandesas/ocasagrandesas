@@ -15,5 +15,6 @@ ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_HTTP_PORTS=8080 \
     PORT=8080 \
     ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+    PGSSLROOTCERT=/app/certs/supabase-ca.crt \
     DOTNET_EnableDiagnostics=0
 ENTRYPOINT ["dotnet", "OCasaGrande.Web.dll"]

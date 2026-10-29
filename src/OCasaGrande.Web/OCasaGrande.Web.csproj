@@ -23,4 +23,10 @@
     <Content Include="html\**\*.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Public CA certificate of Supabase, used by Npgsql (PGSSLROOTCERT) to validate the database's TLS certificate. -->
+  <ItemGroup>
+    <None Remove="certs\**" />
+    <Content Include="certs\*.crt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

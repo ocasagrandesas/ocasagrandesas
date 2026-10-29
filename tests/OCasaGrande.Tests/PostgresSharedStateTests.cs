@@ -49,7 +49,7 @@ public sealed class PostgresSharedStateTests : IAsyncLifetime
         var response = await second.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.True(await _first.QueryScalarAsync<long>("""SELECT COUNT(*) FROM "DataProtectionKeys" """) > 0);
+        Assert.True(await _first.QueryScalarAsync<long>("""SELECT COUNT(*) FROM ocasagrande."DataProtectionKeys" """) > 0);
     }
 
     [Fact]
@@ -62,13 +62,31 @@ public sealed class PostgresSharedStateTests : IAsyncLifetime
 
         var events = await client.GetFromJsonAsync<List<SecurityEventItem>>("/api/admin/security-events");
         var stored = await _first.QueryScalarAsync<long>("""
-            SELECT COUNT(*) FROM "SecurityEvents"
+            SELECT COUNT(*) FROM ocasagrande."SecurityEvents"
             WHERE "Actor" LIKE '%invasor%' OR "Detail" LIKE '%senha%'
             """);
 
         Assert.Contains(events!, e => e.Type == "LoginFailed" && e.Actor is null);
         Assert.Contains(events!, e => e.Type == "LoginSucceeded" && e.Actor == AppFactory.AdminEmail);
         Assert.Equal(0, stored);
+    }
+
+    // Supabase's Data API publishes the "public" schema; the session key ring must never be reachable through it.
+    [Fact]
+    public async Task Tables_AreKeptOutOfThePublicSchema()
+    {
+        _first.CreateBrowserClient();
+
+        var inPublic = await _first.QueryScalarAsync<long>("""
+            SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'
+            """);
+        var keyRing = await _first.QueryScalarAsync<long>("""
+            SELECT COUNT(*) FROM information_schema.tables
+            WHERE table_schema = 'ocasagrande' AND table_name = 'DataProtectionKeys'
+            """);
+
+        Assert.Equal(0, inPublic);
+        Assert.Equal(1, keyRing);
     }
 
     public async Task DisposeAsync()

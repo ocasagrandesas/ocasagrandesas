@@ -28,11 +28,10 @@ public sealed class SharedRateLimiter(AppDbContext db, IConfiguration configurat
 
         // Interpolated values become SQL parameters; the upsert is atomic, so concurrent requests cannot both slip through.
         var count = await db.Database.SqlQuery<int>($"""
-            INSERT INTO "RateLimitWindows" ("Key", "WindowStart", "Count")
+            INSERT INTO ocasagrande."RateLimitWindows" AS w ("Key", "WindowStart", "Count")
             VALUES ({key}, {windowStart}, 1)
             ON CONFLICT ("Key") DO UPDATE SET
-                "Count" = CASE WHEN "RateLimitWindows"."WindowStart" = EXCLUDED."WindowStart"
-                               THEN "RateLimitWindows"."Count" + 1 ELSE 1 END,
+                "Count" = CASE WHEN w."WindowStart" = EXCLUDED."WindowStart" THEN w."Count" + 1 ELSE 1 END,
                 "WindowStart" = EXCLUDED."WindowStart"
             RETURNING "Count" AS "Value"
             """).ToListAsync(cancellationToken);

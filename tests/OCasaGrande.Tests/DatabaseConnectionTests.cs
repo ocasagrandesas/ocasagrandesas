@@ -6,16 +6,21 @@ namespace OCasaGrande.Tests;
 
 public sealed class DatabaseConnectionTests
 {
-    [Fact]
-    public void FromUrl_ConvertsNeonUrlAndRequiresVerifiedTls()
-    {
-        var connection = new NpgsqlConnectionStringBuilder(DatabaseConnection.FromUrl(
-            "postgresql://app_user:p%40ss%3Bword@ep-test-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"));
+    private const string PoolerUrl =
+        "postgresql://postgres.abcdefghijklmnop:p%40ss%3Bword@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x";
 
-        Assert.Equal("ep-test-pooler.sa-east-1.aws.neon.tech", connection.Host);
-        Assert.Equal(5432, connection.Port);
-        Assert.Equal("neondb", connection.Database);
-        Assert.Equal("app_user", connection.Username);
+    private const string DirectUrl =
+        "postgresql://postgres.abcdefghijklmnop:p%40ss%3Bword@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
+
+    [Fact]
+    public void FromUrl_ConvertsSupabaseUrlAndRequiresVerifiedTls()
+    {
+        var connection = new NpgsqlConnectionStringBuilder(DatabaseConnection.FromUrl(PoolerUrl));
+
+        Assert.Equal("aws-0-us-east-1.pooler.supabase.com", connection.Host);
+        Assert.Equal(6543, connection.Port);
+        Assert.Equal("postgres", connection.Database);
+        Assert.Equal("postgres.abcdefghijklmnop", connection.Username);
         Assert.Equal("p@ss;word", connection.Password);
         Assert.Equal(SslMode.VerifyFull, connection.SslMode);
     }
@@ -29,25 +34,37 @@ public sealed class DatabaseConnectionTests
     }
 
     [Fact]
-    public void Resolve_UsesUnpooledUrlForMigrations()
+    public void Resolve_UsesPoolerForQueriesAndDirectConnectionForMigrations()
     {
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        var connection = DatabaseConnection.Resolve(Configuration(new()
         {
-            ["DATABASE_URL"] = "postgresql://u:p@ep-x-pooler.neon.tech/db",
-            ["DATABASE_URL_UNPOOLED"] = "postgresql://u:p@ep-x.neon.tech/db",
-        }).Build();
+            ["POSTGRES_URL"] = PoolerUrl,
+            ["POSTGRES_URL_NON_POOLING"] = DirectUrl,
+        }));
 
-        var connection = DatabaseConnection.Resolve(configuration);
+        var application = new NpgsqlConnectionStringBuilder(connection.Application);
+        Assert.Equal(6543, application.Port);
+        Assert.True(application.NoResetOnClose);
 
-        Assert.Equal("ep-x-pooler.neon.tech", new NpgsqlConnectionStringBuilder(connection.Application).Host);
-        Assert.Equal("ep-x.neon.tech", new NpgsqlConnectionStringBuilder(connection.Migrations).Host);
+        var migrations = new NpgsqlConnectionStringBuilder(connection.Migrations);
+        Assert.Equal(5432, migrations.Port);
+        Assert.False(migrations.NoResetOnClose);
+    }
+
+    [Fact]
+    public void Resolve_RefusesToMigrateThroughTheTransactionPooler()
+    {
+        var configuration = Configuration(new() { ["POSTGRES_URL"] = PoolerUrl });
+
+        Assert.Throws<InvalidOperationException>(() => DatabaseConnection.Resolve(configuration));
     }
 
     [Fact]
     public void Resolve_FailsWhenNoPostgresIsConfigured()
     {
-        var configuration = new ConfigurationBuilder().Build();
-
-        Assert.Throws<InvalidOperationException>(() => DatabaseConnection.Resolve(configuration));
+        Assert.Throws<InvalidOperationException>(() => DatabaseConnection.Resolve(Configuration(new())));
     }
+
+    private static IConfiguration Configuration(Dictionary<string, string?> values) =>
+        new ConfigurationBuilder().AddInMemoryCollection(values).Build();
 }
